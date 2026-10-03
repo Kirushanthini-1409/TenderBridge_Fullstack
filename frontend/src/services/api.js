@@ -1,7 +1,7 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 let tokenProvider = () => null;
 
-/** Connect the shared authentication layer here once Member 1 exposes its token API. */
+// The shared authentication context can provide its current token through this adapter.
 export function setApiTokenProvider(provider) {
   tokenProvider = typeof provider === 'function' ? provider : () => null;
 }
@@ -17,13 +17,13 @@ export class ApiError extends Error {
 
 export class ContractUnavailableError extends Error {
   constructor(feature) {
-    super(`The backend contract for ${feature} has not been defined yet.`);
+    super(`The backend contract for ${feature} is not defined.`);
     this.name = 'ContractUnavailableError';
   }
 }
 
 export async function request(path, { method = 'GET', body, signal } = {}) {
-  if (!API_BASE_URL) throw new ApiError('Set VITE_API_BASE_URL to connect to the TenderBridge API.');
+  if (!API_BASE_URL) throw new ApiError('Configure the API base URL before connecting this page to the backend.');
   const token = await tokenProvider();
   let response;
   try {
@@ -45,13 +45,10 @@ export async function request(path, { method = 'GET', body, signal } = {}) {
   if (text) {
     try { payload = JSON.parse(text); } catch { payload = text; }
   }
-  if (!response.ok) {
-    throw new ApiError(payload?.message || `Request failed (${response.status}).`, response.status, payload);
-  }
+  if (!response.ok) throw new ApiError(payload?.message || `Request failed (${response.status}).`, response.status, payload);
   return payload;
 }
 
 export function explainError(error) {
-  if (error instanceof ContractUnavailableError) return `${error.message} This screen is ready for integration once the backend owner confirms the API.`;
   return error?.message || 'Something went wrong. Please try again.';
 }

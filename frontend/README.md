@@ -1,6 +1,6 @@
 # TenderBridge frontend
 
-React + Vite frontend scaffold for the Member 3 application tracker, saved tenders, JV directory, private organization publishing portal, and admin approval queue.
+React frontend for the application tracker, saved opportunities, JV directory, organization publishing portal, and approval console.
 
 ## Run locally
 
@@ -8,4 +8,4 @@ React + Vite frontend scaffold for the Member 3 application tracker, saved tende
 2. Run `npm install`.
 3. Run `npm run dev`.
 
-The app shell and pages are isolated under `src/`. Connect the shared authentication provider and role guards from Member 1 before merging routes into the team application. Service methods that depend on backend contracts not present in the repository deliberately report that the contract is missing. Proposed routes in `member3Service.js` are not verified backend implementations.
+The app uses the existing `src/` project tree, shared navigation, route table, and shared UI components. Authentication files in the current project are empty, so protected role routes and the auth token provider need to be connected when the shared authentication implementation is available. Service methods for undefined backend contracts report the integration gap without returning fake success data. Service calls based on proposed routes still need confirmation against the implemented API.

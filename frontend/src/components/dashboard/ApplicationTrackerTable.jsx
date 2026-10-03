@@ -1,0 +1,6 @@
+import StatusBadge from '../common/StatusBadge.jsx';
+import { formatDate } from '../../utils/formatters.js';
+
+export default function ApplicationTrackerTable({ rows, onSelect }) {
+  return <div className="table-scroll"><table className="data-table"><thead><tr><th scope="col">Tender</th><th scope="col">Source</th><th scope="col">Category</th><th scope="col">Deadline</th><th scope="col">Status</th><th scope="col">Last updated</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead><tbody>{rows.map(row => <tr key={row.id}><td><strong>{row.tender?.title || row.tenderTitle || 'Tender'}</strong><span className="table-secondary">{row.tender?.referenceNumber || row.referenceNumber || row.tenderId || 'Reference unavailable'}</span></td><td>{row.tender?.issuingAuthority || row.issuingAuthority || '—'}</td><td>{row.tender?.category || row.category || '—'}</td><td>{formatDate(row.tender?.submissionDeadline || row.submissionDeadline)}</td><td><StatusBadge status={row.status} /></td><td>{formatDate(row.updatedAt || row.submissionDate)}</td><td><button type="button" className="button button-tertiary" onClick={() => onSelect(row)}>Details</button></td></tr>)}</tbody></table></div>;
+}
