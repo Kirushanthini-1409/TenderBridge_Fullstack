@@ -190,14 +190,59 @@ a { color: var(--blue); }
 
 .tender-search-form { display: flex; align-items: flex-end; gap: 11px; max-width: 620px; }
 .tender-search-form .field { flex: 1; }
-.partner-card { display: flex; flex-direction: column; }
+.partner-card { display: flex; min-height: 230px; flex-direction: column; box-shadow: 0 3px 14px rgba(18, 43, 70, .035); }
 .partner-card-header { display: flex; align-items: center; gap: 11px; }
+.partner-card-header > div { min-width: 0; }
 .company-monogram { display: grid; place-items: center; width: 38px; height: 38px; flex: none; border: 1px solid #dce5ee; border-radius: 7px; background: #f4f7fa; color: #385d84; font-size: 14px; font-weight: 750; }
-.partner-card h3 { margin: 0; color: var(--navy); font-size: 13px; }
+.partner-card h3 { margin: 0; color: var(--navy); font-size: 13px; overflow-wrap: anywhere; }
 .partner-card-header p { margin: 4px 0 0; color: #596d84; font-size: 9px; }
-.partner-capabilities { flex: 1; margin: 16px 0; color: #53677e; font-size: 11px; line-height: 1.6; }
+.partner-capabilities { flex: 1; margin: 16px 0; color: #53677e; font-size: 11px; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-wrap; }
 .partner-card-actions { display: flex; gap: 7px; padding-top: 12px; border-top: 1px solid #edf1f4; }
 .partner-card-actions .button { flex: 1; }
+.partner-filter-layout .filter-bar { grid-template-columns: minmax(220px, 1.6fr) minmax(150px, 1fr); max-width: 760px; }
+.partner-directory-panel .panel-header { align-items: center; }
+.partner-unavailable { display: flex; min-height: 215px; flex-direction: column; align-items: center; justify-content: center; padding: 27px 16px; text-align: center; }
+.partner-unavailable h3 { margin: 0; color: var(--navy); font-size: 14px; }
+.partner-unavailable > p { max-width: 390px; margin: 7px 0 14px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.partner-action-notice { padding: 12px 14px; border: 1px solid var(--line); border-radius: 7px; background: #f8fafc; color: #40556c; }
+.partner-action-notice strong { font-size: 11px; }
+.partner-action-notice > p { margin: 4px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.org-integration-state { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 14px 15px; border: 1px solid var(--line); border-radius: 8px; background: #f8fafc; color: #40556c; }
+.org-integration-state strong { font-size: 11px; }
+.org-integration-state p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+.org-integration-state details { margin-top: 9px; color: #687a8f; font-size: 10px; }
+.org-integration-state summary { cursor: pointer; }
+.org-listings-panel .panel-header { align-items: center; }
+.org-listing-filters .filter-bar { grid-template-columns: minmax(220px, 1.6fr) minmax(150px, 1fr); max-width: 760px; }
+.org-listing-cards { display: none; }
+.org-listing-card { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: white; box-shadow: 0 3px 14px rgba(18, 43, 70, .035); }
+.org-listing-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.org-listing-card-heading > div { min-width: 0; }
+.org-listing-card h3 { margin: 0; color: var(--navy); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.org-listing-card-heading p { margin: 5px 0 0; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.org-listing-card-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0; padding: 12px 0; border-top: 1px solid #edf1f4; border-bottom: 1px solid #edf1f4; }
+.org-listing-card-details dt { color: #61748a; font-size: 9px; }
+.org-listing-card-details dd { margin: 4px 0 0; color: #40556c; font-size: 10px; font-weight: 650; }
+.org-listing-card-actions { display: flex; gap: 8px; }
+.org-listing-card-actions .button { flex: 1; }
+.approval-queue-panel .panel-header { align-items: center; }
+.approval-filter-layout .filter-bar { grid-template-columns: minmax(220px, 1.6fr) repeat(2, minmax(150px, 1fr)); max-width: 940px; }
+.approval-cards { display: none; }
+.approval-card { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: white; box-shadow: 0 3px 14px rgba(18, 43, 70, .035); }
+.approval-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.approval-card-heading > div { min-width: 0; }
+.approval-card h3 { margin: 0; color: var(--navy); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.approval-card-heading p { margin: 5px 0 0; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.approval-card-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 14px 0; padding: 12px 0; border-top: 1px solid #edf1f4; border-bottom: 1px solid #edf1f4; }
+.approval-card-details dt { color: #61748a; font-size: 9px; }
+.approval-card-details dd { margin: 4px 0 0; color: #40556c; font-size: 10px; font-weight: 650; overflow-wrap: anywhere; }
+.approval-card > .button { width: 100%; }
+.admin-unavailable { display: flex; min-height: 215px; flex-direction: column; align-items: center; justify-content: center; padding: 27px 16px; text-align: center; }
+.admin-unavailable h3 { margin: 0; color: var(--navy); font-size: 14px; }
+.admin-unavailable > p { max-width: 390px; margin: 7px 0 14px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.approval-action-note { margin-top: 16px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 7px; background: #f8fafc; color: #40556c; }
+.approval-action-note strong { font-size: 11px; }
+.approval-action-note p { margin: 4px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .profile-summary { display: grid; gap: 12px; margin: 20px 0; }
 .profile-summary > div { padding-bottom: 10px; border-bottom: 1px solid #edf1f4; }
 .profile-summary p { margin: 5px 0 0; color: #43576e; font-size: 12px; line-height: 1.55; white-space: pre-wrap; }
@@ -241,8 +286,15 @@ a { color: var(--blue); }
   .main-content { width: min(100% - 36px, 760px); margin-top: 25px; }
   .filter-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .saved-filter-layout .filter-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .partner-filter-layout .filter-bar { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+  .org-listing-filters .filter-bar { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+  .approval-filter-layout .filter-bar { grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(0, 1fr)); }
   .application-table { display: none; }
   .application-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+  .org-listing-table { display: none; }
+  .org-listing-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+  .approval-table { display: none; }
+  .approval-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
 }
 @media (max-width: 600px) {
   .site-header { padding: 0 16px; }
@@ -256,12 +308,17 @@ a { color: var(--blue); }
   .stat-value { font-size: 21px; }
   .filter-bar { grid-template-columns: 1fr; gap: 10px; }
   .saved-filter-layout .filter-bar { grid-template-columns: 1fr; }
+  .partner-filter-layout .filter-bar { grid-template-columns: 1fr; }
+  .org-listing-filters .filter-bar { grid-template-columns: 1fr; }
+  .approval-filter-layout .filter-bar { grid-template-columns: 1fr; }
   .workflow-strip { align-items: flex-start; flex-direction: column; gap: 13px; padding: 13px; }
   .workflow-steps { width: 100%; justify-content: space-between; gap: 6px; }
   .workflow-connector { flex: 1; max-width: 42px; }
   .workflow-step { gap: 5px; font-size: 10px; }
   .workflow-node { width: 21px; height: 21px; }
   .application-cards { grid-template-columns: 1fr; }
+  .org-listing-cards { grid-template-columns: 1fr; }
+  .approval-cards { grid-template-columns: 1fr; }
   .opportunity-grid, .partner-grid { grid-template-columns: 1fr; }
   .form-grid, .detail-grid { grid-template-columns: 1fr; }
   .field-wide { grid-column: auto; }

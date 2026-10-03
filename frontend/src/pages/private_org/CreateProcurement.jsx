@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ErrorState, Field, Notice, PageHeader, Panel } from '../../components/common/ProcurementUI.jsx';
+import { Field, Notice, PageHeader, Panel } from '../../components/common/ProcurementUI.jsx';
+import OrganizationIntegrationState from '../../components/private_org/OrganizationIntegrationState.jsx';
 import { organizationProcurementService } from '../../services/procurementService.js';
 
 export default function CreateProcurement() {
@@ -20,7 +21,7 @@ export default function CreateProcurement() {
   return <>
     <PageHeader eyebrow="ORGANIZATION WORKSPACE" title="Create procurement" description="Prepare a structured opportunity for suppliers to review." action={<Link className="button button-secondary" to="/org/procurements">Back to listings</Link>} />
     <Notice>Publishing and draft saving are not connected yet. Your entries will remain on this form until a backend workflow is agreed.</Notice>
-    {error && <ErrorState error={error} />}
+    {error && <OrganizationIntegrationState title="Your procurement wasn’t submitted" description="No listing was created. Your entries remain in this form so you can review them." error={error} />}
     <form onSubmit={submit} className="procurement-form">
       <Panel title="Basic information" description="Give suppliers the core information they need to understand the opportunity."><div className="form-grid"><Field label="Procurement title"><input name="title" required maxLength="180" /></Field><Field label="Category"><input name="category" required maxLength="100" placeholder="Choose a procurement category" /></Field><Field label="Description" className="field-wide"><textarea name="description" rows="4" required /></Field></div></Panel>
       <Panel title="Procurement details" description="Set the estimated scale and submission window."><div className="form-grid"><Field label="Estimated value (₹)" hint="Optional. The API value convention still needs confirmation."><input name="estimatedValue" type="number" min="0" step="any" /></Field><Field label="Location"><input name="location" maxLength="160" /></Field><Field label="Submission deadline"><input name="submissionDeadline" type="datetime-local" required /></Field></div></Panel>
