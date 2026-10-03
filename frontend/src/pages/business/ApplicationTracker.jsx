@@ -44,7 +44,7 @@ export default function ApplicationTracker() {
       const second = sort === 'updated' ? b.updatedAt : deadlineOf(b);
       const firstTime = first ? new Date(first).getTime() : Number.MAX_SAFE_INTEGER;
       const secondTime = second ? new Date(second).getTime() : Number.MAX_SAFE_INTEGER;
-      return sort === 'latest' ? secondTime - firstTime : firstTime - secondTime;
+      return sort === 'latest' || sort === 'updated' ? secondTime - firstTime : firstTime - secondTime;
     });
   }, [rows, query, statusFilter, categoryFilter, sort]);
 

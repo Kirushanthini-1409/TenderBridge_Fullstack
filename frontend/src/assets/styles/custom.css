@@ -331,3 +331,185 @@ a { color: var(--blue); }
   .dialog-actions { flex-wrap: wrap; }
   .dialog-actions .button { flex: 1; }
 }
+
+/* Shared product polish */
+:root {
+  --navy: #122d4b;
+  --navy-soft: #203f61;
+  --blue: #245f9f;
+  --blue-dark: #194d84;
+  --text: #23374d;
+  --muted: #66788d;
+  --subtle: #6d7f92;
+  --line: #dce4ec;
+  --background: #f5f7f9;
+  --shadow: 0 8px 24px rgba(20, 45, 72, .045);
+}
+
+body { color: var(--text); font-size: 14px; }
+.app-shell { overflow-x: clip; }
+.site-header { min-height: 78px; border-color: #dbe3eb; box-shadow: 0 2px 8px rgba(20, 45, 72, .025); }
+.brand { font-size: 18px; }
+.brand-mark { width: 38px; height: 38px; border-radius: 10px; }
+.primary-nav { align-items: stretch; gap: clamp(14px, 2vw, 26px); }
+.nav-group { align-items: flex-start; flex-direction: column; justify-content: center; gap: 5px; }
+.nav-group-links { display: flex; align-items: center; gap: 15px; }
+.nav-group + .nav-group { padding-left: clamp(12px, 1.5vw, 20px); border-left: 1px solid #e3e8ee; }
+.nav-group-label { font-size: 9px; letter-spacing: .1em; }
+.nav-link { min-height: 42px; font-size: 12px; }
+.menu-toggle { min-height: 40px; padding: 8px 13px; }
+.main-content { width: min(1280px, calc(100% - 64px)); margin-top: 40px; }
+.page-header-copy { min-width: 0; }
+.page-header { margin-bottom: 28px; }
+.page-header h1 { font-size: clamp(29px, 3.2vw, 37px); letter-spacing: -.04em; }
+.eyebrow { font-size: 10px; letter-spacing: .13em; }
+.page-description { max-width: 720px; font-size: 14px; line-height: 1.6; }
+.panel { padding: 24px 26px; border-radius: 12px; box-shadow: 0 5px 20px rgba(20, 45, 72, .035); }
+.panel-header { margin-bottom: 21px; }
+.panel-header h2 { font-size: 16px; }
+.panel-header p { font-size: 12px; }
+.button { min-height: 40px; padding: 9px 15px; border-radius: 8px; font-size: 12px; }
+.button-tertiary { min-height: 34px; }
+.button-primary { box-shadow: 0 2px 5px rgba(36, 95, 159, .12); }
+.button:active:not(:disabled) { transform: translateY(1px); }
+.stat-grid { gap: 14px; margin-bottom: 20px; }
+.stat-card { min-height: 112px; padding: 18px 20px; border-radius: 11px; box-shadow: 0 4px 16px rgba(20, 45, 72, .03); }
+.stat-label { font-size: 12px; }
+.stat-value { margin: 9px 0 4px; font-size: 28px; }
+.stat-detail { font-size: 11px; }
+.field { gap: 7px; font-size: 12px; }
+.field-label { color: #455a71; }
+.field-hint { font-size: 11px; }
+.field input, .field select, .field textarea { min-height: 42px; padding: 10px 12px; border-color: #cad6e2; border-radius: 8px; font-size: 13px; }
+.field textarea { min-height: 100px; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: #6a98c8; box-shadow: 0 0 0 3px rgba(36, 95, 159, .12); }
+.filter-bar { gap: 12px; margin-bottom: 18px; }
+.data-table th { padding: 13px 14px; font-size: 10px; }
+.data-table td { padding: 14px; font-size: 12px; }
+.data-table td strong { font-size: 13px; }
+.table-secondary { font-size: 11px; }
+.status-badge { padding: 6px 9px; border-radius: 6px; font-size: 11px; }
+.loading-state { min-height: 150px; font-size: 13px; }
+.empty-state { min-height: 205px; padding: 30px 16px; }
+.empty-icon { width: 48px; height: 48px; border-radius: 13px; }
+.empty-state h3 { font-size: 16px; }
+.empty-state p { font-size: 12px; line-height: 1.65; }
+.workflow-strip { min-height: 86px; padding: 18px 22px; border-color: #d2dfeb; border-left: 3px solid #3d75ad; border-radius: 11px; background: #f0f5fa; }
+.workflow-title { color: var(--navy); font-size: 13px; }
+.workflow-caption { font-size: 11px; }
+.workflow-step { font-size: 12px; }
+.workflow-node { width: 27px; height: 27px; border-color: #b9cbdc; background: white; font-size: 11px; }
+.workflow-connector { height: 2px; background: #c0d0df; }
+.opportunity-grid, .partner-grid { gap: 16px; }
+.opportunity-card, .partner-card { border-radius: 11px; box-shadow: none; }
+.opportunity-card { min-height: 270px; padding: 19px; transition: border-color .15s ease, box-shadow .15s ease; }
+.opportunity-card:hover, .partner-card:hover { border-color: #c7d5e3; box-shadow: 0 6px 18px rgba(20, 45, 72, .05); }
+.opportunity-card h3 { font-size: 15px; }
+.opportunity-category { margin-top: 17px; }
+.opportunity-source, .opportunity-details dd { font-size: 11px; }
+.opportunity-details dt { font-size: 10px; }
+.partner-card { min-height: 245px; padding: 19px; transition: border-color .15s ease, box-shadow .15s ease; }
+.partner-card-header { align-items: flex-start; }
+.partner-card-kicker { margin: 0 0 4px; color: #657991; font-size: 10px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; }
+.partner-card h3 { font-size: 15px; }
+.partner-capability-section { margin: 19px 0 12px; }
+.capability-list { display: flex; flex-wrap: wrap; gap: 7px; margin: 9px 0 0; padding: 0; list-style: none; }
+.capability-list li { max-width: 100%; padding: 6px 9px; border: 1px solid #dce6ef; border-radius: 999px; background: #f5f8fb; color: #3d5b79; font-size: 11px; line-height: 1.3; overflow-wrap: anywhere; }
+.partner-capabilities-empty { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+.partner-card-date { margin: auto 0 0; padding: 12px 0; color: var(--muted); font-size: 11px; }
+.partner-card-actions { gap: 9px; }
+.partner-card-actions .button { flex: 1; }
+.partner-search-panel .tender-search-form { max-width: 760px; gap: 14px; }
+.partner-search-panel .tender-search-form .button { min-width: 150px; }
+.partner-search-panel .panel-header { margin-bottom: 22px; }
+.partner-search-panel .panel-header p { max-width: 720px; }
+.tender-id-control { position: relative; display: block; }
+.tender-id-control > svg { position: absolute; z-index: 1; top: 50%; left: 13px; width: 18px; height: 18px; color: #60758c; transform: translateY(-50%); pointer-events: none; }
+.tender-id-control input { padding-left: 42px; }
+.partner-directory-panel .panel-header { align-items: flex-start; }
+.partner-directory-panel .panel-header p { max-width: 700px; }
+.partner-presearch { padding: 6px 0 0; }
+.partner-presearch .empty-state { min-height: 260px; }
+.partner-presearch .empty-icon { width: 62px; height: 62px; margin-bottom: 17px; border-radius: 50%; background: #eef3f7; }
+.partner-presearch .empty-icon svg { width: 31px; height: 31px; }
+.partner-presearch .empty-state h3 { font-size: 19px; }
+.partner-presearch .empty-state p { font-size: 13px; }
+.directory-state { display: flex; width: fit-content; align-items: center; justify-content: center; gap: 8px; margin: -2px auto 8px; padding: 8px 13px; border: 1px solid #b9cadb; border-radius: 999px; color: #344f6b; background: white; font-size: 12px; font-weight: 600; }
+.directory-state svg { width: 16px; height: 16px; }
+.partner-unavailable, .application-unavailable, .saved-unavailable, .admin-unavailable { min-height: 235px; }
+.org-integration-state { padding: 16px 17px; border-radius: 9px; }
+.org-integration-state strong, .error-state strong { font-size: 12px; }
+.org-integration-state p, .error-state p { font-size: 11px; }
+.org-listing-card, .approval-card { border-radius: 10px; box-shadow: none; }
+.org-listing-card h3, .approval-card h3 { font-size: 14px; }
+.org-listing-card-details dt, .approval-card-details dt { font-size: 10px; }
+.org-listing-card-details dd, .approval-card-details dd { font-size: 11px; }
+.approval-action-note { border-radius: 9px; }
+.approval-action-note strong { font-size: 12px; }
+.approval-action-note p { font-size: 11px; }
+.procurement-form .panel { margin-bottom: 0; padding: 22px 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; box-shadow: none; }
+.procurement-form .panel:first-child { border-top: 0; padding-top: 4px; }
+.procurement-form .panel-header { margin-bottom: 18px; }
+.form-grid { gap: 18px; }
+.form-submit-bar { padding: 18px 0 8px; border-top: 1px solid var(--line); font-size: 12px; }
+.notice { border-radius: 0 8px 8px 0; font-size: 12px; }
+.modal { padding: 25px; border-radius: 14px; }
+.modal-header h2 { font-size: 21px; }
+.modal-header p:not(.eyebrow) { font-size: 12px; }
+.detail-item dt, .profile-label { font-size: 11px; }
+.detail-item dd, .profile-summary p { font-size: 13px; }
+
+@media (max-width: 1100px) {
+  .site-header { gap: 18px; padding-inline: 24px; }
+  .primary-nav { gap: 13px; }
+  .nav-group-links { gap: 9px; }
+  .nav-group { gap: 0; }
+  .nav-group + .nav-group { padding-left: 12px; }
+  .nav-link { font-size: 11px; }
+  .main-content { width: min(100% - 48px, 1280px); }
+  .saved-filter-layout .filter-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .saved-filter-layout .search-field { grid-column: 1 / -1; }
+}
+
+@media (max-width: 900px) {
+  .site-header { min-height: 70px; }
+  .nav-group { align-items: stretch; }
+  .nav-group-links { align-items: stretch; flex-direction: column; gap: 0; }
+  .nav-group + .nav-group { padding-left: 0; border-left: 0; }
+  .main-content { width: min(100% - 40px, 760px); margin-top: 30px; }
+  .partner-search-panel .tender-search-form { max-width: none; }
+  .procurement-form .panel { padding: 20px 0; }
+}
+
+@media (max-width: 600px) {
+  .site-header { min-height: 64px; padding-inline: 15px; }
+  .brand { font-size: 16px; }
+  .brand-mark { width: 35px; height: 35px; }
+  .main-content { width: calc(100% - 30px); margin-top: 24px; }
+  .page-header { gap: 13px; margin-bottom: 21px; }
+  .page-header h1 { font-size: 29px; }
+  .page-description { font-size: 13px; }
+  .panel { padding: 19px 16px; border-radius: 11px; }
+  .panel-header { flex-direction: column; align-items: stretch; }
+  .panel-header > .button, .panel-header > a { align-self: flex-start; }
+  .stat-grid { gap: 9px; }
+  .stat-card { min-height: 102px; padding: 14px; border-radius: 10px; }
+  .stat-label { font-size: 11px; }
+  .stat-value { font-size: 24px; }
+  .stat-detail { font-size: 10px; line-height: 1.4; }
+  .filter-bar, .saved-filter-layout .filter-bar, .partner-filter-layout .filter-bar, .org-listing-filters .filter-bar, .approval-filter-layout .filter-bar { grid-template-columns: minmax(0, 1fr); }
+  .saved-filter-layout .search-field { grid-column: auto; }
+  .workflow-strip { padding: 15px; }
+  .workflow-steps { gap: 4px; }
+  .workflow-step { font-size: 10px; }
+  .workflow-node { width: 23px; height: 23px; }
+  .partner-search-panel .tender-search-form { align-items: stretch; flex-direction: column; }
+  .partner-search-panel .tender-search-form .button { width: 100%; }
+  .partner-presearch .empty-state { min-height: 220px; }
+  .partner-card { min-height: 0; padding: 16px; }
+  .partner-card-actions { flex-direction: column; }
+  .partner-card-actions .button { width: 100%; }
+  .procurement-form .panel { padding: 18px 0; }
+  .form-submit-bar { gap: 12px; }
+  .modal { padding: 19px 16px; }
+}

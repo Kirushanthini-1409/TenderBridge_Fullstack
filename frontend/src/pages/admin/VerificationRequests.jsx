@@ -56,7 +56,7 @@ export default function VerificationRequests() {
   }
 
   return <>
-    <PageHeader eyebrow="ADMINISTRATION" title="Verification requests" description="Review organization and procurement submissions provided to the approval queue." action={<button type="button" className="button button-secondary" onClick={load} disabled={loading}>Refresh queue</button>} />
+    <PageHeader eyebrow="ADMINISTRATION WORKSPACE" title="Verification requests" description="Review organization and procurement submissions provided to the approval queue." action={<button type="button" className="button button-secondary" onClick={load} disabled={loading}>Refresh queue</button>} />
     <section className="stat-grid stat-grid-three" aria-label="Approval summary">
       <StatCard label="Pending" value={loading || error ? '—' : counts.pending} detail="Awaiting review" />
       <StatCard label="Approved" value={loading || error ? '—' : counts.approved} detail="Returned by the queue" />
@@ -91,8 +91,8 @@ export default function VerificationRequests() {
         const link = safeDocumentUrl(document.url);
         return link ? <a key={document.id || index} href={link} target="_blank" rel="noreferrer">{document.name || `Document ${index + 1}`}</a> : <span key={document.id || index}>{document.name || `Document ${index + 1}`}</span>;
       })}</div>}
-      <div className="approval-action-note" role="status"><strong>Review decisions are unavailable</strong><p>Approval and rejection controls stay disabled until a decision service is implemented. No decision has been recorded.</p></div>
-      <div className="dialog-actions"><button type="button" className="button button-secondary" onClick={() => setSelected(null)}>Close</button><button type="button" className="button button-danger" disabled title="The approval decision service is not implemented">Reject</button><button type="button" className="button button-primary" disabled title="The approval decision service is not implemented">Approve</button></div>
+      <div className="approval-action-note" id="approval-action-note" role="status"><strong>Review decisions are unavailable</strong><p>Approval and rejection controls stay disabled until a decision service is implemented. No decision has been recorded.</p></div>
+      <div className="dialog-actions"><button type="button" className="button button-secondary" onClick={() => setSelected(null)}>Close</button><button type="button" className="button button-danger" disabled aria-describedby="approval-action-note">Reject</button><button type="button" className="button button-primary" disabled aria-describedby="approval-action-note">Approve</button></div>
     </Modal>}
   </>;
 }

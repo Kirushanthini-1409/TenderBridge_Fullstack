@@ -2,7 +2,7 @@ import { useEffect, useId, useRef } from 'react';
 import { ContractUnavailableError, explainError } from '../../services/api.js';
 
 export function PageHeader({ eyebrow, title, description, action }) {
-  return <div className="page-header"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p className="page-description">{description}</p></div>{action && <div className="page-header-action">{action}</div>}</div>;
+  return <header className="page-header"><div className="page-header-copy"><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p className="page-description">{description}</p></div>{action && <div className="page-header-action">{action}</div>}</header>;
 }
 
 export function Panel({ title, description, action, children, className = '' }) {

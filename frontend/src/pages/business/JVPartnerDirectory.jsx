@@ -87,26 +87,24 @@ export default function JVPartnerDirectory() {
   }
 
   return <>
-    <PageHeader eyebrow="BUSINESS WORKSPACE" title="JV & Consortium Partners" description="Find businesses whose capabilities could strengthen a joint tender response." action={<button type="button" className="button button-primary" disabled={!tenderId.trim()} onClick={() => { setPublishError(null); setFormOpen(true); }}>Express interest</button>} />
+    <PageHeader eyebrow="BUSINESS WORKSPACE" title="JV & Consortium Partners" description="Find businesses with complementary capabilities to bid together on public sector tenders." action={<button type="button" className="button button-secondary" disabled={!tenderId.trim()} onClick={() => { setPublishError(null); setFormOpen(true); }}>Express interest</button>} />
 
-    <Panel title="Find partners for a tender" description="Enter a tender ID to view partner listings shared for that opportunity.">
+    <Panel title="Find partners for a tender" description="Enter a tender ID to view partner listings shared for that opportunity." className="partner-search-panel">
       <form className="tender-search-form" onSubmit={search}>
-        <Field label="Tender ID" hint="Use the identifier associated with the tender opportunity."><input value={tenderId} onChange={event => setTenderId(event.target.value)} required placeholder="Enter a tender ID" /></Field>
+        <Field label="Tender reference or ID" hint="Use the identifier associated with the tender opportunity."><span className="tender-id-control"><SearchIcon /><input value={tenderId} onChange={event => setTenderId(event.target.value)} required placeholder="Enter tender reference or ID" /></span></Field>
         <button className="button button-primary" disabled={loading || !tenderId.trim()}>{loading ? 'Searching…' : 'Find partners'}</button>
       </form>
     </Panel>
 
-    {!searched ? <Panel title="Build a complementary bid team" description="Partner listings are associated with a specific tender.">
-      <p className="supporting-copy">Search for a tender to see companies that have shared collaboration interest. Contact information appears only when the listing includes it.</p>
-    </Panel> : <Panel title="Partner directory" description={error ? 'Partner information could not be loaded.' : `${visible.length} ${visible.length === 1 ? 'partner listing' : 'partner listings'} for this tender`} className="partner-directory-panel" action={hasActiveFilters && !error ? <button type="button" className="button button-secondary" onClick={clearFilters}>Clear filters</button> : null}>
+    <Panel title="Partner directory" description={!searched ? 'Partner listings are associated with a specific tender.' : error ? 'Partner information could not be loaded.' : `${visible.length} ${visible.length === 1 ? 'partner listing' : 'partner listings'} for tender ${tenderId.trim()}`} className="partner-directory-panel" action={hasActiveFilters && !error ? <button type="button" className="button button-secondary" onClick={clearFilters}>Clear filters</button> : null}>
       {rows.length > 0 && <div className="partner-filter-layout"><FilterBar>
         <SearchField label="Search partners" value={query} onChange={event => setQuery(event.target.value)} placeholder="Company, capability, or contact" />
         <Field label="Capability"><select value={capability} onChange={event => setCapability(event.target.value)}><option value="ALL">All capabilities</option>{capabilities.map(value => <option key={value} value={value}>{value}</option>)}</select></Field>
       </FilterBar></div>}
-      {loading ? <LoadingState label="Loading partner listings…" /> : error ? <PartnerUnavailable error={error} onRetry={search} /> : visible.length ? <div className="partner-grid">
+      {!searched ? <div className="partner-presearch"><EmptyState icon={<PartnerIcon />} title="Start with a tender">Partner listings will appear here after you choose a tender.</EmptyState><span className="directory-state"><InfoIcon />No tender selected</span></div> : loading ? <LoadingState label="Loading partner listings…" /> : error ? <PartnerUnavailable error={error} onRetry={search} /> : visible.length ? <div className="partner-grid">
         {visible.map((partner, index) => <PartnerCompanyCard key={partner.id || `${partner.companyName || 'partner'}-${index}`} partner={partner} onView={setSelected} />)}
       </div> : rows.length ? <EmptyState icon={<SearchIcon />} title="No matching partners">No listings match your search or capability filter. Adjust your search or clear filters to see more.</EmptyState> : <EmptyState icon={<PartnerIcon />} title="No partner listings yet">No companies have shared collaboration interest for this tender.</EmptyState>}
-    </Panel>}
+    </Panel>
 
     {formOpen && <Modal title="Express interest in a joint bid" description="Your company and contact details will be shared in this tender’s partner directory." onClose={() => setFormOpen(false)}>
       <form className="form-stack" onSubmit={publish}>
@@ -151,9 +149,13 @@ function PartnerActionNotice({ error }) {
 }
 
 function PartnerIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.8 19a5.2 5.2 0 0 1 10.4 0M14 15a4.2 4.2 0 0 1 7.2 3.2"/></svg>;
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3.5 20.5h17M5 20V7.5h5V20M14 20V4h5v16"/><path d="M7 10h1M7 13h1M7 16h1M16 7h1M16 10h1M16 13h1M16 16h1M10.5 14h3M11.5 11.5l1.4 1.3-1.4 1.3"/></svg>;
 }
 
 function SearchIcon() {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>;
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>;
+}
+
+function InfoIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>;
 }
