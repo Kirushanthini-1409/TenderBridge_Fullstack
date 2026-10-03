@@ -3,6 +3,7 @@ import ApplicationTrackerTable from '../../components/dashboard/ApplicationTrack
 import StatCard from '../../components/dashboard/StatCard.jsx';
 import { EmptyState, ErrorState, Field, FilterBar, LoadingState, Modal, PageHeader, SearchField } from '../../components/common/ProcurementUI.jsx';
 import { applicationsService } from '../../services/procurementService.js';
+import { explainError } from '../../services/api.js';
 import { formatDate, getRows, humanize } from '../../utils/formatters.js';
 
 const statuses = ['INTERESTED', 'SUBMITTED', 'UNDER_EVALUATION', 'RESULT_RELEASED', 'CLOSED'];
@@ -50,8 +51,8 @@ export default function ApplicationTracker() {
   const counts = {
     total: rows.length,
     interested: rows.filter(row => row.status === 'INTERESTED').length,
-    submitted: rows.filter(row => ['SUBMITTED', 'UNDER_EVALUATION'].includes(row.status)).length,
-    completed: rows.filter(row => ['RESULT_RELEASED', 'CLOSED'].includes(row.status)).length,
+    submitted: rows.filter(row => row.status === 'SUBMITTED').length,
+    evaluation: rows.filter(row => row.status === 'UNDER_EVALUATION').length,
   };
 
   async function save(event) {
@@ -66,8 +67,8 @@ export default function ApplicationTracker() {
 
   return <>
     <PageHeader eyebrow="BUSINESS WORKSPACE" title="Application tracker" description="Track each opportunity from first interest through submission and result." action={<button className="button button-secondary" onClick={load} disabled={loading}>Refresh</button>} />
-    <section className="stat-grid" aria-label="Application summary"><StatCard label="Total applications" value={loading || error ? '—' : counts.total} detail="Tracked opportunities" /><StatCard label="Interested" value={loading || error ? '—' : counts.interested} detail="Considering a response" /><StatCard label="Submitted" value={loading || error ? '—' : counts.submitted} detail="Submitted or under evaluation" /><StatCard label="Completed / result" value={loading || error ? '—' : counts.completed} detail="Result released or closed" /></section>
-    <section className="workflow-strip" aria-label="Application status progression"><span className="workflow-title">Application progression</span><ol className="workflow-steps"><li className="workflow-step">Interested</li><li className="workflow-connector" aria-hidden="true" /><li className="workflow-step">Submitted</li><li className="workflow-connector" aria-hidden="true" /><li className="workflow-step">Result</li></ol></section>
+    <section className="stat-grid" aria-label="Application summary"><StatCard label="Tracked" value={loading || error ? '—' : counts.total} detail="Applications" /><StatCard label="Interested" value={loading || error ? '—' : counts.interested} detail="Considering a response" /><StatCard label="Submitted" value={loading || error ? '—' : counts.submitted} detail="Response submitted" /><StatCard label="Under evaluation" value={loading || error ? '—' : counts.evaluation} detail="Awaiting an outcome" /></section>
+    <section className="workflow-strip" aria-label="Application lifecycle: Interested, then Submitted, then Result"><div><span className="workflow-title">Application lifecycle</span><p className="workflow-caption">Follow progress from your first decision to the tender outcome.</p></div><ol className="workflow-steps"><li className="workflow-step"><span className="workflow-node" aria-hidden="true">1</span>Interested</li><li className="workflow-connector" aria-hidden="true" /><li className="workflow-step"><span className="workflow-node" aria-hidden="true">2</span>Submitted</li><li className="workflow-connector" aria-hidden="true" /><li className="workflow-step"><span className="workflow-node" aria-hidden="true">3</span>Result</li></ol></section>
     <section className="panel">
       <div className="panel-header"><div><h2>Tracked applications</h2><p>Review deadlines, status, and recent updates.</p></div></div>
       <FilterBar>
@@ -76,7 +77,7 @@ export default function ApplicationTracker() {
         <Field label="Category"><select value={categoryFilter} onChange={event => setCategoryFilter(event.target.value)}><option value="ALL">All categories</option>{categories.map(category => <option key={category}>{category}</option>)}</select></Field>
         <Field label="Sort by"><select value={sort} onChange={event => setSort(event.target.value)}><option value="deadline">Nearest deadline</option><option value="latest">Latest deadline</option><option value="updated">Last updated</option></select></Field>
       </FilterBar>
-      {error ? <ErrorState error={error} onRetry={load} /> : loading ? <LoadingState label="Loading your applications…" /> : visibleRows.length ? <ApplicationTrackerTable rows={visibleRows} onSelect={setSelected} /> : rows.length ? <EmptyState title="No matching applications">Try another search or clear one or more filters.</EmptyState> : <EmptyState title="No applications tracked yet">Applications you decide to pursue will appear here.</EmptyState>}
+      {loading ? <LoadingState label="Loading your applications…" /> : error ? <ApplicationUnavailable error={error} onRetry={load} /> : visibleRows.length ? <ApplicationTrackerTable rows={visibleRows} onSelect={setSelected} /> : rows.length ? <EmptyState icon={<SearchIcon />} title="No search results">No applications match your search and filters. Try adjusting them to see more.</EmptyState> : <EmptyState icon={<ApplicationIcon />} title="No applications tracked yet">Track an application here after submitting your response through the official tender portal.</EmptyState>}
     </section>
     {selected && <Modal title={titleOf(selected)} description="Application details and current progress." onClose={() => setSelected(null)}><div className="detail-grid"><Detail label="Status" value={humanize(selected.status)} /><Detail label="Source" value={selected.tender?.issuingAuthority || selected.issuingAuthority || '—'} /><Detail label="Category" value={selected.tender?.category || selected.category || '—'} /><Detail label="Deadline" value={formatDate(deadlineOf(selected))} /><Detail label="Submission reference" value={selected.referenceNo || '—'} /><Detail label="Last updated" value={formatDate(selected.updatedAt || selected.submissionDate)} /></div><ApplicationTimeline status={selected.status} /><div className="record-notes"><span>Notes</span><p>{selected.notes || 'No notes added.'}</p></div><div className="dialog-actions"><button className="button button-secondary" onClick={() => setSelected(null)}>Close</button><button className="button button-primary" onClick={() => { setEditing(selected); setSelected(null); setSaveError(null); }}>Update application</button></div></Modal>}
     {editing && <Modal title="Update application" description={titleOf(editing)} onClose={() => setEditing(null)}><form className="form-stack" onSubmit={save}>{saveError && <ErrorState error={saveError} />}<Field label="Application status"><select name="status" defaultValue={editing.status}>{statuses.map(status => <option key={status} value={status}>{humanize(status)}</option>)}</select></Field><Field label="Submission reference"><input name="referenceNo" defaultValue={editing.referenceNo || ''} /></Field><Field label="Submission date"><input type="date" name="submissionDate" defaultValue={editing.submissionDate?.slice(0, 10) || ''} /></Field><Field label="Notes"><textarea name="notes" rows="3" defaultValue={editing.notes || ''} /></Field><div className="dialog-actions"><button type="button" className="button button-secondary" onClick={() => setEditing(null)}>Cancel</button><button className="button button-primary" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button></div></form></Modal>}
@@ -85,6 +86,24 @@ export default function ApplicationTracker() {
 
 function Detail({ label, value }) {
   return <div className="detail-item"><dt>{label}</dt><dd>{value || '—'}</dd></div>;
+}
+
+function ApplicationUnavailable({ error, onRetry }) {
+  return <div className="application-unavailable" role="status">
+    <span className="empty-icon" aria-hidden="true"><ApplicationIcon /></span>
+    <h3>Application data is unavailable</h3>
+    <p>We couldn’t load your tracked applications. Please try again in a moment.</p>
+    <button className="button button-secondary" onClick={onRetry}>Try again</button>
+    <details className="integration-details"><summary>Integration details</summary><p>{explainError(error)}</p></details>
+  </div>;
+}
+
+function ApplicationIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>;
+}
+
+function SearchIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>;
 }
 
 function ApplicationTimeline({ status }) {

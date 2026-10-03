@@ -34,8 +34,8 @@ export function LoadingState({ label = 'Loading…' }) {
   return <div className="loading-state" role="status" aria-live="polite"><span className="spinner" aria-hidden="true" />{label}</div>;
 }
 
-export function EmptyState({ title, children, action }) {
-  return <div className="empty-state"><span className="empty-rule" aria-hidden="true" /><h3>{title}</h3><p>{children}</p>{action && <div className="empty-action">{action}</div>}</div>;
+export function EmptyState({ title, children, action, icon }) {
+  return <div className="empty-state">{icon ? <span className="empty-icon" aria-hidden="true">{icon}</span> : <span className="empty-rule" aria-hidden="true" />}<h3>{title}</h3><p>{children}</p>{action && <div className="empty-action">{action}</div>}</div>;
 }
 
 export function Modal({ title, description, onClose, children, labelledBy }) {
