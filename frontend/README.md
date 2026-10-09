@@ -16,6 +16,6 @@ The backend accepts only trusted `app_metadata.role` values: `BUSINESS`, `ORGANI
 
 ## Local configuration
 
-In the Supabase project dashboard, copy the project URL and public anon/publishable key from the API settings. Set those as `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `frontend/.env.local`. The current app API URL is `http://localhost:4000`. Restart the Vite development server after changing environment values.
+In the Supabase project dashboard, get the project URL and the public publishable key (or legacy anon key) from **Settings → API Keys**. Set them as `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `frontend/.env.local`. The key beginning with `sb_publishable_` is appropriate for browser code; never use a secret or service-role key there. The current app API URL is `http://localhost:4000`. Restart the Vite development server after changing environment values.
 
 The API origin must also appear in the backend's `CORS_ORIGINS` setting. For local development, the example allows `http://localhost:5173`.
