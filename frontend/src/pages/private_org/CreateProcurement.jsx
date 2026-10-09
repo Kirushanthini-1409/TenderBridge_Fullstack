@@ -10,6 +10,7 @@ export default function CreateProcurement() {
     event.preventDefault(); const data = Object.fromEntries(new FormData(event.currentTarget).entries());
     const intent = event.nativeEvent.submitter?.value || 'publish';
     if (data.estimatedValue) data.estimatedValue = Number(data.estimatedValue);
+    if (data.minTurnover) data.minTurnover = Number(data.minTurnover) * 100000;
     if (data.submissionDeadline) data.submissionDeadline = new Date(data.submissionDeadline).toISOString();
     data.requiredDocuments = data.requiredDocuments.split('\n').map(value => value.trim()).filter(Boolean);
     setBusy(true); setError(null);
@@ -20,7 +21,7 @@ export default function CreateProcurement() {
 
   return <>
     <PageHeader eyebrow="ORGANIZATION WORKSPACE" title="Create procurement" description="Prepare a structured opportunity for suppliers to review." action={<Link className="button button-secondary" to="/org/procurements">Back to listings</Link>} />
-    <Notice>Publishing and draft saving are not connected yet. Your entries will remain on this form until a backend workflow is agreed.</Notice>
+    <Notice>Drafts are saved as drafts. Published submissions enter the organization review queue as pending review.</Notice>
     {error && <OrganizationIntegrationState title="Your procurement wasn’t submitted" description="No listing was created. Your entries remain in this form so you can review them." error={error} />}
     <form onSubmit={submit} className="procurement-form">
       <Panel title="Basic information" description="Give suppliers the core information they need to understand the opportunity."><div className="form-grid"><Field label="Procurement title"><input name="title" required maxLength="180" /></Field><Field label="Category"><input name="category" required maxLength="100" placeholder="Choose a procurement category" /></Field><Field label="Description" className="field-wide"><textarea name="description" rows="4" required /></Field></div></Panel>

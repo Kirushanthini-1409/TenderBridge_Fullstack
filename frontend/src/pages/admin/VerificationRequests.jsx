@@ -19,6 +19,8 @@ export default function VerificationRequests() {
   const [status, setStatus] = useState('ALL');
   const [type, setType] = useState('ALL');
   const [selected, setSelected] = useState(null);
+  const [decisionBusy, setDecisionBusy] = useState(false);
+  const [decisionError, setDecisionError] = useState(null);
 
   async function load() {
     setLoading(true);
@@ -55,6 +57,26 @@ export default function VerificationRequests() {
     setType('ALL');
   }
 
+  function openRequest(row) {
+    setDecisionError(null);
+    setSelected(row);
+  }
+
+  async function decide(status) {
+    if (!selected || decisionBusy) return;
+    setDecisionBusy(true);
+    setDecisionError(null);
+    try {
+      await approvalService.decide(selected.id, { status });
+      setSelected(null);
+      await load();
+    } catch (requestError) {
+      setDecisionError(requestError);
+    } finally {
+      setDecisionBusy(false);
+    }
+  }
+
   return <>
     <PageHeader eyebrow="ADMINISTRATION WORKSPACE" title="Verification requests" description="Review organization and procurement submissions provided to the approval queue." action={<button type="button" className="button button-secondary" onClick={load} disabled={loading}>Refresh queue</button>} />
     <section className="stat-grid stat-grid-three" aria-label="Approval summary">
@@ -79,20 +101,20 @@ export default function VerificationRequests() {
             <td><strong>{nameOf(row)}</strong><span className="table-secondary">{contactOf(row)}</span></td>
             <td>{humanize(typeOf(row))}</td><td>{formatDate(row.createdAt || row.submittedAt)}</td>
             <td>{Array.isArray(row.documents) && row.documents.length ? `${row.documents.length} supporting documents` : 'No document data'}</td>
-            <td><StatusBadge status={row.status} /></td><td><button type="button" className="button button-secondary" onClick={() => setSelected(row)}>Review record</button></td>
+            <td><StatusBadge status={row.status} /></td><td><button type="button" className="button button-secondary" onClick={() => openRequest(row)}>Review record</button></td>
           </tr>)}
         </tbody></table></div>
-        <div className="approval-cards">{visible.map((row, index) => <ApprovalCard key={row.id || `${nameOf(row)}-${index}`} row={row} onView={setSelected} />)}</div>
+        <div className="approval-cards">{visible.map((row, index) => <ApprovalCard key={row.id || `${nameOf(row)}-${index}`} row={row} onView={openRequest} />)}</div>
       </> : rows.length ? <EmptyState title="No requests match those filters">Try a different search, type, or status, or clear filters to see the full queue.</EmptyState> : <EmptyState icon={<ReviewIcon />} title="No requests to review">Verification requests will appear here when the approval queue is connected.</EmptyState>}
     </section>
-    {selected && <Modal title={nameOf(selected)} description="Information supplied for verification." onClose={() => setSelected(null)}>
+    {selected && <Modal title={nameOf(selected)} description="Information supplied for verification." onClose={() => { if (!decisionBusy) setSelected(null); }}>
       <div className="detail-grid"><Detail label="Request type" value={humanize(typeOf(selected))} /><Detail label="Status" value={humanize(selected.status || '')} /><Detail label="Contact person" value={selected.contactPerson} /><Detail label="Email" value={selected.email || selected.contactEmail} /><Detail label="Phone" value={selected.contactPhone} /><Detail label="Registration number" value={selected.registrationNo} /><Detail label="Submitted" value={formatDate(selected.createdAt || selected.submittedAt)} /></div>
       {Array.isArray(selected.documents) && selected.documents.length > 0 && <div className="document-list"><h3>Supporting documents</h3>{selected.documents.map((document, index) => {
         const link = safeDocumentUrl(document.url);
         return link ? <a key={document.id || index} href={link} target="_blank" rel="noreferrer">{document.name || `Document ${index + 1}`}</a> : <span key={document.id || index}>{document.name || `Document ${index + 1}`}</span>;
       })}</div>}
-      <div className="approval-action-note" id="approval-action-note" role="status"><strong>Review decisions are unavailable</strong><p>Approval and rejection controls stay disabled until a decision service is implemented. No decision has been recorded.</p></div>
-      <div className="dialog-actions"><button type="button" className="button button-secondary" onClick={() => setSelected(null)}>Close</button><button type="button" className="button button-danger" disabled aria-describedby="approval-action-note">Reject</button><button type="button" className="button button-primary" disabled aria-describedby="approval-action-note">Approve</button></div>
+      {decisionError && <div className="approval-action-note" role="alert"><strong>The decision was not recorded</strong><p>{explainError(decisionError)}</p></div>}
+      <div className="dialog-actions"><button type="button" className="button button-secondary" disabled={decisionBusy} onClick={() => setSelected(null)}>Close</button><button type="button" className="button button-danger" disabled={decisionBusy || !hasPendingStatus(selected)} onClick={() => decide('REJECTED')}>{decisionBusy ? 'Saving…' : 'Reject'}</button><button type="button" className="button button-primary" disabled={decisionBusy || !hasPendingStatus(selected)} onClick={() => decide('APPROVED')}>{decisionBusy ? 'Saving…' : 'Approve'}</button></div>
     </Modal>}
   </>;
 }
