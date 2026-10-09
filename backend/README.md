@@ -41,6 +41,12 @@ All JSON collections use `{ "items": [...] }`; created or updated records use `{
 
 Organization procurement submissions use the existing form fields. `intent: "draft"` stores `DRAFT`; `intent: "publish"` stores `PENDING_REVIEW`. Estimated value and minimum turnover are stored as numeric currency amounts, in rupees. The frontend converts the minimum turnover input from ₹ lakhs to rupees before sending it.
 
+## Frontend integration status
+
+The current frontend service methods use the paths and JSON envelopes in the API table above. The application tracker currently lists and updates existing records; its service supports creating a record with `tenderId`, but the page has no create/track action yet. The saved-opportunities page lists and removes records; its service supports saving, but no tender card or detail-page action calls that method yet. The JV page lists and publishes partner listings for a tender reference or ID. Organization screens list and create procurements, including drafts. The admin verification screen lists requests and records approval decisions.
+
+The API also accepts `POST /api/v1/verification-requests` for `BUSINESS` or `ORGANIZATION`, but the current frontend has no verification submission form wired to it. File uploads are unavailable; only document metadata can be submitted when a caller is added. These UI gaps should be completed after the relevant owners confirm the shared tender, auth, organization, and storage contracts. Do not treat an unused service method as a working user flow.
+
 Applications, saved opportunities, and partner listings reference a `Tender` row. The repository does not currently contain the shared tender ingestion/catalog service or its confirmed data contract. No endpoint fabricates missing tenders; these operations return 404 until the authoritative tender rows are loaded. The tender ingestion owner must confirm field mapping and identifier stability before these features can run against shared production data.
 
 ## Storage and integration boundaries
