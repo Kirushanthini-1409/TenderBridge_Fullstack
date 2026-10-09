@@ -16,7 +16,7 @@ Node/Express API for the member 3 domains: application tracking, saved opportuni
 
 Every `/api/v1` route except `/api/v1/health` needs `Authorization: Bearer <Supabase access token>`. Tokens are verified against the project's JWKS and issuer/audience. For a legacy Supabase project using HS256, set the private `SUPABASE_JWT_SECRET`; never expose it to the frontend. Configure the exact frontend origins in comma-separated `CORS_ORIGINS`.
 
-The backend reads `app_metadata.role` from the verified token and accepts `BUSINESS`, `ORGANIZATION`, or `ADMIN`. Roles must be assigned by trusted server-side Supabase administration; values in user-editable metadata are ignored. The frontend Supabase auth provider now supplies its current access token through `setApiTokenProvider()`. Registration does not assign a role; administrators must provision it securely before users can access a workspace.
+The backend reads `app_metadata.role` from the verified token and accepts `BUSINESS`, `ORGANIZATION`, or `ADMIN`. Roles must be assigned by trusted server-side Supabase administration; values in user-editable metadata are ignored. The frontend API adapter exposes `setApiTokenProvider()` for Member 1's Supabase Auth implementation to provide the active access token.
 
 Organizations are scoped to the authenticated Supabase user ID (`sub`). This is a single-owner contract until the team agrees on shared organization membership. Admin users may see all organization listings. Do not change these scopes to trust IDs supplied by the browser.
 
