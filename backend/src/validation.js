@@ -2,8 +2,9 @@ import { z } from 'zod';
 
 const text = (max) => z.string().trim().min(1).max(max);
 const optionalText = (max) => z.string().trim().max(max).optional().nullable();
-const nonnegative = z.preprocess(value => value === '' ? undefined : value, z.coerce.number().finite().nonnegative().optional().nullable());
-const optionalInteger = z.preprocess(value => value === '' ? undefined : value, z.coerce.number().int().nonnegative().optional().nullable());
+const preserveEmptyNumber = value => value === null ? null : value === '' ? undefined : value;
+const nonnegative = z.preprocess(preserveEmptyNumber, z.coerce.number().finite().nonnegative().optional().nullable());
+const optionalInteger = z.preprocess(preserveEmptyNumber, z.coerce.number().int().nonnegative().optional().nullable());
 export const idSchema = z.string().uuid();
 const dateInput = z.union([
   z.string().datetime({ offset: true }),
