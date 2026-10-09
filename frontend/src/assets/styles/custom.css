@@ -513,3 +513,61 @@ body { color: var(--text); font-size: 14px; }
   .form-submit-bar { gap: 12px; }
   .modal { padding: 19px 16px; }
 }
+
+/* Readability and hierarchy pass */
+body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.55; }
+.site-header { min-height: 82px; }
+.nav-group-label { font-size: 10px; }
+.nav-link { min-height: 44px; font-size: 13px; }
+.page-header h1 { font-size: clamp(32px, 3.4vw, 42px); line-height: 1.12; }
+.eyebrow { font-size: 11px; }
+.page-description { font-size: 15px; }
+.panel { border-color: #d5e0ea; }
+.panel-header h2 { font-size: 18px; }
+.panel-header p { font-size: 14px; }
+.button { min-height: 44px; padding: 10px 17px; font-size: 13px; }
+.button-tertiary { min-height: 40px; }
+.stat-label { font-size: 13px; }
+.stat-value { font-size: 31px; }
+.stat-detail { font-size: 12px; }
+.field { font-size: 13px; }
+.field-hint { font-size: 12px; }
+.field input, .field select, .field textarea { min-height: 46px; font-size: 15px; }
+.field textarea { min-height: 112px; }
+.data-table th { font-size: 11px; }
+.data-table td { font-size: 13px; }
+.data-table td strong { font-size: 14px; }
+.table-secondary { font-size: 12px; }
+.status-badge { font-size: 12px; }
+.empty-state h3 { font-size: 18px; }
+.empty-state p { font-size: 13px; }
+.workflow-title { font-size: 14px; }
+.workflow-caption { font-size: 12px; }
+.workflow-step { font-size: 13px; }
+.opportunity-card h3, .partner-card h3 { font-size: 17px; }
+.opportunity-category, .partner-card-kicker { font-size: 11px; }
+.opportunity-source, .partner-capabilities, .partner-capabilities-empty { font-size: 13px; }
+.opportunity-details dt, .org-listing-card-details dt, .approval-card-details dt { font-size: 12px; }
+.opportunity-details dd, .org-listing-card-details dd, .approval-card-details dd { font-size: 13px; }
+.supporting-copy, .notice, .form-submit-bar { font-size: 13px; }
+.detail-item dt, .profile-label { font-size: 12px; }
+.detail-item dd, .profile-summary p { font-size: 14px; }
+.site-footer { font-size: 12px; }
+.modal { max-width: min(700px, calc(100vw - 32px)); }
+
+@media (max-width: 1100px) {
+  .nav-group-label { font-size: 10px; }
+  .nav-link { font-size: 12px; }
+}
+
+@media (max-width: 600px) {
+  .site-header { min-height: 68px; }
+  .nav-link { min-height: 46px; font-size: 14px; }
+  .page-header h1 { font-size: 32px; }
+  .page-description { font-size: 14px; }
+  .panel-header h2 { font-size: 17px; }
+  .panel-header p { font-size: 13px; }
+  .field input, .field select, .field textarea { font-size: 16px; }
+  .stat-value { font-size: 27px; }
+  .opportunity-grid, .partner-grid { gap: 13px; }
+}
