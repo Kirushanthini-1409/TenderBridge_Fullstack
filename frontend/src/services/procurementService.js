@@ -1,29 +1,34 @@
-import { ContractUnavailableError } from './api.js';
+import { request } from './api.js';
 
-// Backend route/controller files are empty in the current repository. Keep these feature
-// operations isolated here; connect them only after the backend contract is confirmed.
+// These routes are implemented by backend/src/app.js. Authenticated calls require
+// setApiTokenProvider() to return the current Supabase access token.
 export const applicationsService = {
-  list: () => { throw new ContractUnavailableError('listing tracked applications'); },
-  createOrUpdate: () => { throw new ContractUnavailableError('creating or updating an application'); },
+  list: () => request('/api/v1/applications'),
+  createOrUpdate: application => {
+    if (!application?.id) return request('/api/v1/applications', { method: 'POST', body: application });
+    return request(`/api/v1/applications/${encodeURIComponent(application.id)}`, { method: 'PUT', body: application });
+  },
 };
 
 export const savedOpportunitiesService = {
-  list: () => { throw new ContractUnavailableError('listing saved opportunities'); },
-  toggle: () => { throw new ContractUnavailableError('saving or removing a tender'); },
+  list: () => request('/api/v1/saved-opportunities'),
+  // The current screen only removes saved items. Saving uses the POST endpoint.
+  toggle: tenderId => request(`/api/v1/saved-opportunities/${encodeURIComponent(tenderId)}`, { method: 'DELETE' }),
+  save: tenderId => request(`/api/v1/saved-opportunities/${encodeURIComponent(tenderId)}`, { method: 'POST', body: {} }),
 };
 
 export const partnerDirectoryService = {
-  listForTender: () => { throw new ContractUnavailableError('listing JV partners'); },
-  publishForTender: () => { throw new ContractUnavailableError('publishing a JV partner listing'); },
+  listForTender: tenderId => request(`/api/v1/jv/${encodeURIComponent(tenderId)}`),
+  publishForTender: (tenderId, body) => request(`/api/v1/jv/${encodeURIComponent(tenderId)}`, { method: 'POST', body }),
 };
 
 export const organizationProcurementService = {
-  listMine: () => { throw new ContractUnavailableError('listing organization procurements'); },
-  create: () => { throw new ContractUnavailableError('publishing an organization procurement'); },
-  update: () => { throw new ContractUnavailableError('updating an organization procurement'); },
+  listMine: () => request('/api/v1/organization/procurements'),
+  create: body => request('/api/v1/organization/procurements', { method: 'POST', body }),
+  update: (id, body) => request(`/api/v1/organization/procurements/${encodeURIComponent(id)}`, { method: 'PATCH', body }),
 };
 
 export const approvalService = {
-  list: () => { throw new ContractUnavailableError('listing approval requests'); },
-  decide: () => { throw new ContractUnavailableError('recording an approval decision'); },
+  list: () => request('/api/v1/admin/verification-requests'),
+  decide: (id, body) => request(`/api/v1/admin/verification-requests/${encodeURIComponent(id)}`, { method: 'PATCH', body }),
 };

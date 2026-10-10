@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ApplicationStatus {
+  INTERESTED
+  SUBMITTED
+  UNDER_EVALUATION
+  RESULT_RELEASED
+  CLOSED
+}
+
+enum ProcurementStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+  CLOSED
+}
+
+enum VerificationStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum VerificationType {
+  BUSINESS
+  ORGANIZATION
+}
+
+model Tender {
+  id                 String             @id @default(uuid()) @db.Uuid
+  referenceNumber    String?            @unique
+  title              String
+  category           String?
+  issuingAuthority   String?
+  status             String?
+  submissionDeadline DateTime?
+  estimatedValue     Decimal?           @db.Decimal(18, 2)
+  officialLink       String?
+  applications       Application[]
+  savedBy            SavedOpportunity[]
+  partnerListings    PartnerListing[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([submissionDeadline])
+}
+
+model Application {
+  id             String            @id @default(uuid()) @db.Uuid
+  ownerAuthId    String
+  tenderId       String            @db.Uuid
+  tender         Tender            @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  status         ApplicationStatus @default(INTERESTED)
+  notes          String?           @db.Text
+  referenceNo    String?
+  submissionDate DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([ownerAuthId, tenderId])
+  @@index([ownerAuthId, updatedAt])
+}
+
+model SavedOpportunity {
+  id          String   @id @default(uuid()) @db.Uuid
+  ownerAuthId String
+  tenderId    String   @db.Uuid
+  tender      Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([ownerAuthId, tenderId])
+  @@index([ownerAuthId, createdAt])
+}
+
+model PartnerListing {
+  id                  String   @id @default(uuid()) @db.Uuid
+  ownerAuthId         String
+  tenderId            String   @db.Uuid
+  tender              Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  companyName         String
+  offeredCapabilities String   @db.Text
+  contactPerson       String
+  contactEmail        String
+  contactPhone        String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([tenderId, createdAt])
+}
+
+model OrganizationProcurement {
+  id                  String           @id @default(uuid()) @db.Uuid
+  ownerAuthId         String
+  title               String
+  category            String
+  description         String           @db.Text
+  estimatedValue      Decimal?         @db.Decimal(18, 2)
+  location            String?
+  submissionDeadline  DateTime
+  minTurnover         Decimal?         @db.Decimal(18, 2)
+  minExperienceYears  Int?
+  requiredDocuments   String[]         @default([])
+  status              ProcurementStatus @default(DRAFT)
+  referenceNumber     String           @unique
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@index([ownerAuthId, createdAt])
+  @@index([status, submissionDeadline])
+}
+
+model VerificationRequest {
+  id              String           @id @default(uuid()) @db.Uuid
+  ownerAuthId     String
+  type            VerificationType
+  organizationName String
+  businessName    String?
+  contactPerson   String
+  email           String
+  contactPhone    String?
+  registrationNo  String?
+  documents       Json             @default("[]")
+  status          VerificationStatus @default(PENDING)
+  decisionNote    String?          @db.Text
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([status, createdAt])
+  @@index([ownerAuthId, createdAt])
+}
