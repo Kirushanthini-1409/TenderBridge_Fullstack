@@ -12,9 +12,12 @@ export const applicationsService = {
 
 export const savedOpportunitiesService = {
   list: () => request('/api/v1/saved-opportunities'),
-  // The current screen only removes saved items. Saving uses the POST endpoint.
   toggle: tenderId => request(`/api/v1/saved-opportunities/${encodeURIComponent(tenderId)}`, { method: 'DELETE' }),
   save: tenderId => request(`/api/v1/saved-opportunities/${encodeURIComponent(tenderId)}`, { method: 'POST', body: {} }),
+};
+
+export const verificationRequestService = {
+  submit: body => request('/api/v1/verification-requests', { method: 'POST', body }),
 };
 
 export const partnerDirectoryService = {

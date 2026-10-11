@@ -23,6 +23,9 @@ export default function ApplicationTracker() {
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [trackingOpen, setTrackingOpen] = useState(false);
+  const [trackingBusy, setTrackingBusy] = useState(false);
+  const [trackingError, setTrackingError] = useState(null);
 
   async function load() {
     setLoading(true); setError(null);
@@ -65,8 +68,30 @@ export default function ApplicationTracker() {
     finally { setSaving(false); }
   }
 
+  async function trackTender(event) {
+    event.preventDefault();
+    if (trackingBusy) return;
+    const form = new FormData(event.currentTarget);
+    const tenderId = String(form.get('tenderReference') || '').trim();
+    setTrackingBusy(true);
+    setTrackingError(null);
+    try {
+      await applicationsService.createOrUpdate({
+        tenderId,
+        status: 'INTERESTED',
+        notes: String(form.get('notes') || '').trim() || null,
+      });
+      setTrackingOpen(false);
+      await load();
+    } catch (requestError) {
+      setTrackingError(requestError);
+    } finally {
+      setTrackingBusy(false);
+    }
+  }
+
   return <>
-    <PageHeader eyebrow="BUSINESS WORKSPACE" title="Application tracker" description="Track each opportunity from first interest through submission and result." action={<button className="button button-secondary" onClick={load} disabled={loading}>Refresh</button>} />
+    <PageHeader eyebrow="BUSINESS WORKSPACE" title="Application tracker" description="Track each opportunity from first interest through submission and result." action={<div className="button-row"><button type="button" className="button button-primary" onClick={() => { setTrackingError(null); setTrackingOpen(true); }}>Track a tender</button><button type="button" className="button button-secondary" onClick={load} disabled={loading}>Refresh</button></div>} />
     <section className="stat-grid" aria-label="Application summary"><StatCard label="Tracked" value={loading || error ? '—' : counts.total} detail="Applications" /><StatCard label="Interested" value={loading || error ? '—' : counts.interested} detail="Considering a response" /><StatCard label="Submitted" value={loading || error ? '—' : counts.submitted} detail="Response submitted" /><StatCard label="Under evaluation" value={loading || error ? '—' : counts.evaluation} detail="Awaiting an outcome" /></section>
     <section className="workflow-strip" aria-label="Application lifecycle: Interested, then Submitted, then Result"><div><span className="workflow-title">Application lifecycle</span><p className="workflow-caption">Follow progress from your first decision to the tender outcome.</p></div><ol className="workflow-steps"><li className="workflow-step"><span className="workflow-node" aria-hidden="true">1</span>Interested</li><li className="workflow-connector" aria-hidden="true" /><li className="workflow-step"><span className="workflow-node" aria-hidden="true">2</span>Submitted</li><li className="workflow-connector" aria-hidden="true" /><li className="workflow-step"><span className="workflow-node" aria-hidden="true">3</span>Result</li></ol></section>
     <section className="panel">
@@ -77,9 +102,18 @@ export default function ApplicationTracker() {
         <Field label="Category"><select value={categoryFilter} onChange={event => setCategoryFilter(event.target.value)}><option value="ALL">All categories</option>{categories.map(category => <option key={category}>{category}</option>)}</select></Field>
         <Field label="Sort by"><select value={sort} onChange={event => setSort(event.target.value)}><option value="deadline">Nearest deadline</option><option value="latest">Latest deadline</option><option value="updated">Last updated</option></select></Field>
       </FilterBar>
-      {loading ? <LoadingState label="Loading your applications…" /> : error ? <ApplicationUnavailable error={error} onRetry={load} /> : visibleRows.length ? <ApplicationTrackerTable rows={visibleRows} onSelect={setSelected} /> : rows.length ? <EmptyState icon={<SearchIcon />} title="No search results">No applications match your search and filters. Try adjusting them to see more.</EmptyState> : <EmptyState icon={<ApplicationIcon />} title="No applications tracked yet">Track an application here after submitting your response through the official tender portal.</EmptyState>}
+      {loading ? <LoadingState label="Loading your applications…" /> : error ? <ApplicationUnavailable error={error} onRetry={load} /> : visibleRows.length ? <ApplicationTrackerTable rows={visibleRows} onSelect={setSelected} /> : rows.length ? <EmptyState icon={<SearchIcon />} title="No search results">No applications match your search and filters. Try adjusting them to see more.</EmptyState> : <EmptyState icon={<ApplicationIcon />} title="No applications tracked yet">Use “Track a tender” to add an opportunity by its tender reference or ID.</EmptyState>}
     </section>
     {selected && <Modal title={titleOf(selected)} description="Application details and current progress." onClose={() => setSelected(null)}><div className="detail-grid"><Detail label="Status" value={humanize(selected.status)} /><Detail label="Source" value={selected.tender?.issuingAuthority || selected.issuingAuthority || '—'} /><Detail label="Category" value={selected.tender?.category || selected.category || '—'} /><Detail label="Deadline" value={formatDate(deadlineOf(selected))} /><Detail label="Submission reference" value={selected.referenceNo || '—'} /><Detail label="Last updated" value={formatDate(selected.updatedAt || selected.submissionDate)} /></div><ApplicationTimeline status={selected.status} /><div className="record-notes"><span>Notes</span><p>{selected.notes || 'No notes added.'}</p></div><div className="dialog-actions"><button className="button button-secondary" onClick={() => setSelected(null)}>Close</button><button className="button button-primary" onClick={() => { setEditing(selected); setSelected(null); setSaveError(null); }}>Update application</button></div></Modal>}
+    {trackingOpen && <Modal title="Track a tender" description="Enter the reference number or ID from the tender catalogue." onClose={() => { if (!trackingBusy) setTrackingOpen(false); }}>
+      <form className="form-stack" onSubmit={trackTender}>
+        {trackingError && <ErrorState error={trackingError} />}
+        <Field label="Tender reference or ID"><input name="tenderReference" required maxLength="200" autoFocus placeholder="For example, the tender reference" /></Field>
+        <Field label="Notes (optional)"><textarea name="notes" rows="3" maxLength="5000" placeholder="Why you’re considering this tender" /></Field>
+        <p className="supporting-copy">The tender must already exist in the shared catalogue. If it isn’t found, ask the catalogue owner to load it first.</p>
+        <div className="dialog-actions"><button type="button" className="button button-secondary" disabled={trackingBusy} onClick={() => setTrackingOpen(false)}>Cancel</button><button type="submit" className="button button-primary" disabled={trackingBusy}>{trackingBusy ? 'Adding…' : 'Add to tracker'}</button></div>
+      </form>
+    </Modal>}
     {editing && <Modal title="Update application" description={titleOf(editing)} onClose={() => setEditing(null)}><form className="form-stack" onSubmit={save}>{saveError && <ErrorState error={saveError} />}<Field label="Application status"><select name="status" defaultValue={editing.status}>{statuses.map(status => <option key={status} value={status}>{humanize(status)}</option>)}</select></Field><Field label="Submission reference"><input name="referenceNo" defaultValue={editing.referenceNo || ''} /></Field><Field label="Submission date"><input type="date" name="submissionDate" defaultValue={editing.submissionDate?.slice(0, 10) || ''} /></Field><Field label="Notes"><textarea name="notes" rows="3" defaultValue={editing.notes || ''} /></Field><div className="dialog-actions"><button type="button" className="button button-secondary" onClick={() => setEditing(null)}>Cancel</button><button className="button button-primary" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button></div></form></Modal>}
   </>;
 }
