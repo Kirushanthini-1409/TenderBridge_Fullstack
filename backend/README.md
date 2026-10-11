@@ -32,6 +32,9 @@ All JSON collections use `{ "items": [...] }`; created or updated records use `{
 | PUT | `/api/v1/applications/:applicationId` | BUSINESS | Update status, notes, `referenceNo`, or `submissionDate` on the caller's application |
 | GET | `/api/v1/saved-opportunities` | BUSINESS | List saved tenders |
 | POST / DELETE | `/api/v1/saved-opportunities/:tenderId` | BUSINESS | Save or remove a tender, by UUID or reference number |
+| GET / PUT | `/api/v1/profile` | BUSINESS | Read or save the caller's business profile |
+| POST | `/api/v1/eligibility/evaluate` | BUSINESS | Evaluate a business profile against supplied tender eligibility criteria |
+| POST | `/api/v1/tenders/extract` | Authenticated user | Extract structured tender details from supplied text; this does not call or replace the separate AI service |
 | GET / POST | `/api/v1/jv/:tenderId` | BUSINESS | List or publish a partner listing, by tender UUID or reference number |
 | GET / POST | `/api/v1/organization/procurements` | ORGANIZATION; ADMIN may list all | List owned procurements or create one |
 | PATCH | `/api/v1/organization/procurements/:id` | ORGANIZATION / ADMIN | Update an owned listing (admins can update any listing) |
@@ -48,6 +51,8 @@ The frontend now supports tracking a tender by UUID/reference, saving or removin
 Verification submissions currently contain metadata only. File uploads remain unavailable until the storage bucket, ownership, access, and file-limit rules are confirmed. Do not treat the metadata form as a complete document-verification workflow.
 
 Applications, saved opportunities, and partner listings reference a `Tender` row. The repository does not currently contain the shared tender ingestion/catalog service or its confirmed data contract. No endpoint fabricates missing tenders; these operations return 404 until the authoritative tender rows are loaded. The tender ingestion owner must confirm field mapping and identifier stability before these features can run against shared production data.
+
+Eligibility evaluation reads the signed-in user's business profile when available. A profile may be supplied with the request for an evaluation, but the API ignores identity fields in that body and never saves that submitted profile. Tender text extraction is a deterministic backend helper with optional structured AI client injection; it is not connected to the separately owned Python/LangChain/Gemini service.
 
 ## Storage and integration boundaries
 
