@@ -35,3 +35,9 @@ export const approvalService = {
   list: () => request('/api/v1/admin/verification-requests'),
   decide: (id, body) => request(`/api/v1/admin/verification-requests/${encodeURIComponent(id)}`, { method: 'PATCH', body }),
 };
+
+export const profileService = {
+  get: () => request('/api/v1/profile'),
+  update: body => request('/api/v1/profile', { method: 'PUT', body }),
+};
+
