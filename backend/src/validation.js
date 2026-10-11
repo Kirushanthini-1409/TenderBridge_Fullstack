@@ -47,3 +47,49 @@ export const verificationFilterSchema = z.object({
   status: z.enum(['PENDING', 'UNDER_REVIEW', 'APPROVED', 'REJECTED']).optional(),
   type: z.enum(['BUSINESS', 'ORGANIZATION']).optional(),
 });
+
+const criteriaSchema = z.object({
+  minTurnover: nonnegative,
+  minExperienceYears: optionalInteger,
+  requiredCertifications: z.array(text(100)).max(50).optional().nullable(),
+  locationRestrictions: z.array(text(160)).max(50).optional().nullable(),
+}).passthrough();
+
+export const eligibilityEvaluateSchema = z.object({
+  criteria: criteriaSchema.optional(),
+  minTurnover: nonnegative,
+  minExperienceYears: optionalInteger,
+  requiredCertifications: z.array(text(100)).max(50).optional().nullable(),
+  locationRestrictions: z.array(text(160)).max(50).optional().nullable(),
+  businessProfile: z.object({
+    businessName: optionalText(180),
+    category: optionalText(100),
+    location: optionalText(160),
+    annualTurnover: nonnegative,
+    yearsOfExperience: optionalInteger,
+    certifications: z.array(text(100)).max(50).optional().nullable(),
+  }).passthrough().optional().nullable(),
+}).passthrough();
+
+export const profileUpdateSchema = z.object({
+  businessName: text(180),
+  category: text(100),
+  location: text(160),
+  annualTurnover: z.preprocess(
+    preserveEmptyNumber,
+    z.coerce.number().finite().nonnegative('Annual turnover cannot be negative.')
+  ),
+  yearsOfExperience: z.preprocess(
+    preserveEmptyNumber,
+    z.coerce.number().int('Years of experience must be an integer.').nonnegative('Years of experience cannot be negative.')
+  ),
+  certifications: z.array(text(100)).max(50).default([]),
+});
+
+export const tenderExtractSchema = z.object({
+  text: text(100000),
+  tenderId: optionalText(100),
+});
+
+
+

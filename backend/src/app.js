@@ -3,7 +3,9 @@ import cors from 'cors';
 import { randomUUID } from 'node:crypto';
 import { authenticate, requireRole } from './auth.js';
 import { errorHandler, asyncRoute, HttpError } from './errors.js';
-import { applicationCreateSchema, decisionSchema, idSchema, applicationUpdateSchema, partnerSchema, procurementSchema, procurementUpdateSchema, verificationFilterSchema, verificationSchema } from './validation.js';
+import { applicationCreateSchema, decisionSchema, idSchema, applicationUpdateSchema, partnerSchema, procurementSchema, procurementUpdateSchema, verificationFilterSchema, verificationSchema, eligibilityEvaluateSchema, profileUpdateSchema, tenderExtractSchema } from './validation.js';
+import { evaluateEligibility } from './services/eligibilityEngine.js';
+import { extractTenderDetails } from './services/tenderExtractor.js';
 import { getDb } from './db.js';
 
 const BUSINESS = 'BUSINESS';
@@ -135,6 +137,102 @@ export function createApp({ db = getDb(), auth = authenticate } = {}) {
     });
     if (!result.count) throw new HttpError(404, 'Pending verification request not found.');
     res.json({ item: await db.verificationRequest.findUnique({ where: { id } }) });
+  }));
+
+  api.post('/eligibility/evaluate', requireRole(BUSINESS), asyncRoute(async (req, res) => {
+    const data = parse(eligibilityEvaluateSchema, req.body);
+    const criteria = data.criteria || {
+      minTurnover: data.minTurnover,
+      minExperienceYears: data.minExperienceYears,
+      requiredCertifications: data.requiredCertifications,
+      locationRestrictions: data.locationRestrictions,
+    };
+
+    let businessProfile = null;
+    if (db?.businessProfile?.findUnique) {
+      businessProfile = await db.businessProfile.findUnique({ where: { ownerAuthId: req.auth.id } });
+    } else if (db?.businessProfile?.findFirst) {
+      businessProfile = await db.businessProfile.findFirst({ where: { ownerAuthId: req.auth.id } });
+    }
+
+    if (businessProfile && typeof businessProfile.annualTurnover === 'object' && businessProfile.annualTurnover !== null && typeof businessProfile.annualTurnover.toNumber === 'function') {
+      businessProfile = { ...businessProfile, annualTurnover: businessProfile.annualTurnover.toNumber() };
+    }
+
+    if (!businessProfile && data.businessProfile) {
+      const { id, ownerAuthId, userId, ...safeProfile } = data.businessProfile;
+      businessProfile = safeProfile;
+    }
+
+    const profileToEvaluate = businessProfile || {};
+
+    let result;
+    try {
+      result = evaluateEligibility(profileToEvaluate, criteria);
+    } catch (error) {
+      if (error instanceof TypeError || error instanceof RangeError) {
+        throw new HttpError(400, error.message);
+      }
+      throw error;
+    }
+
+    if (!businessProfile && !data.businessProfile) {
+      if (!result.missingInformation.includes('Business profile is not configured for this account.')) {
+        result.missingInformation.unshift('Business profile is not configured for this account.');
+      }
+    }
+
+    res.json({
+      ...result,
+      explanation: result.summary,
+      item: result,
+    });
+  }));
+
+  api.get('/profile', requireRole(BUSINESS), asyncRoute(async (req, res) => {
+    if (!db?.businessProfile) {
+      throw new HttpError(503, 'Profile storage is not available in the database.');
+    }
+    const item = await db.businessProfile.findUnique({
+      where: { ownerAuthId: req.auth.id },
+    });
+    if (!item) {
+      throw new HttpError(404, 'Profile not found.');
+    }
+    const turnover = item.annualTurnover && typeof item.annualTurnover === 'object' && typeof item.annualTurnover.toNumber === 'function'
+      ? item.annualTurnover.toNumber()
+      : item.annualTurnover;
+    res.json({ item: { ...item, annualTurnover: turnover } });
+  }));
+
+  api.put('/profile', requireRole(BUSINESS), asyncRoute(async (req, res) => {
+    if (!db?.businessProfile) {
+      throw new HttpError(503, 'Profile storage is not available in the database.');
+    }
+    const data = parse(profileUpdateSchema, req.body);
+    const item = await db.businessProfile.upsert({
+      where: { ownerAuthId: req.auth.id },
+      create: { ...data, ownerAuthId: req.auth.id },
+      update: data,
+    });
+    const turnover = item.annualTurnover && typeof item.annualTurnover === 'object' && typeof item.annualTurnover.toNumber === 'function'
+      ? item.annualTurnover.toNumber()
+      : item.annualTurnover;
+    res.json({ item: { ...item, annualTurnover: turnover } });
+  }));
+
+  api.post('/tenders/extract', asyncRoute(async (req, res) => {
+    const data = parse(tenderExtractSchema, req.body);
+    let extracted;
+    try {
+      extracted = await extractTenderDetails(data.text);
+    } catch (error) {
+      if (error instanceof TypeError || error instanceof RangeError) {
+        throw new HttpError(400, error.message);
+      }
+      throw error;
+    }
+    res.json({ item: extracted, ...extracted });
   }));
 
   app.use('/api/v1', api);
