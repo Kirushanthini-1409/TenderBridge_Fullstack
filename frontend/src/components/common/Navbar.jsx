@@ -15,6 +15,9 @@ const groups = [
   { title: 'ADMINISTRATION', links: [
     { to: '/admin/verification-requests', label: 'Approvals', icon: 'approvals' },
   ] },
+  { title: 'VERIFICATION', links: [
+    { to: '/verification/submit', label: 'Request verification', icon: 'approvals' },
+  ] },
 ];
 
 export default function Navbar() {

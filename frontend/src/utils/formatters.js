@@ -12,9 +12,9 @@ export function formatDate(value, options = { day: 'numeric', month: 'short', ye
 
 export function getStatusTone(status = '') {
   const normalized = status.toUpperCase();
-  if (['APPROVED', 'PUBLISHED', 'ACTIVE', 'RESULT_RELEASED', 'COMPLETED'].includes(normalized)) return 'success';
-  if (['PENDING', 'UNDER_EVALUATION', 'DRAFT', 'IN_REVIEW'].includes(normalized)) return 'warning';
-  if (['REJECTED', 'CLOSED', 'CANCELLED'].includes(normalized)) return 'danger';
+  if (['APPROVED', 'PUBLISHED', 'ACTIVE', 'RESULT_RELEASED', 'COMPLETED', 'ELIGIBLE', 'PASS'].includes(normalized)) return 'success';
+  if (['PENDING', 'UNDER_EVALUATION', 'DRAFT', 'IN_REVIEW', 'POTENTIALLY_ELIGIBLE', 'POTENTIALLY ELIGIBLE', 'UNKNOWN'].includes(normalized)) return 'warning';
+  if (['REJECTED', 'CLOSED', 'CANCELLED', 'NOT_ELIGIBLE', 'NOT ELIGIBLE', 'FAIL'].includes(normalized)) return 'danger';
   if (['INTERESTED', 'SUBMITTED'].includes(normalized)) return 'info';
   return 'neutral';
 }

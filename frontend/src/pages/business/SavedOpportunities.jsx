@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import StatusBadge from '../../components/common/StatusBadge.jsx';
 import StatCard from '../../components/dashboard/StatCard.jsx';
-import { EmptyState, Field, FilterBar, LoadingState, PageHeader, SearchField } from '../../components/common/ProcurementUI.jsx';
+import { EmptyState, ErrorState, Field, FilterBar, LoadingState, Modal, PageHeader, SearchField } from '../../components/common/ProcurementUI.jsx';
 import { explainError } from '../../services/api.js';
 import { savedOpportunitiesService } from '../../services/procurementService.js';
 import { formatDate, getRows, humanize } from '../../utils/formatters.js';
@@ -40,6 +40,9 @@ export default function SavedOpportunities() {
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [removingId, setRemovingId] = useState(null);
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('ALL');
   const [status, setStatus] = useState('ALL');
@@ -121,8 +124,26 @@ export default function SavedOpportunities() {
     }
   }
 
+  async function saveTender(event) {
+    event.preventDefault();
+    if (saveBusy) return;
+    const form = new FormData(event.currentTarget);
+    const tenderReference = String(form.get('tenderReference') || '').trim();
+    setSaveBusy(true);
+    setSaveError(null);
+    try {
+      await savedOpportunitiesService.save(tenderReference);
+      setSaveOpen(false);
+      await load();
+    } catch (requestError) {
+      setSaveError(requestError);
+    } finally {
+      setSaveBusy(false);
+    }
+  }
+
   return <>
-    <PageHeader eyebrow="BUSINESS WORKSPACE" title="Saved opportunities" description="Keep tenders you’re considering together so you can revisit their details and deadlines." action={<button className="button button-secondary" onClick={load} disabled={loading}>Refresh</button>} />
+    <PageHeader eyebrow="BUSINESS WORKSPACE" title="Saved opportunities" description="Keep tenders you’re considering together so you can revisit their details and deadlines." action={<div className="button-row"><button type="button" className="button button-primary" onClick={() => { setSaveError(null); setSaveOpen(true); }}>Save a tender</button><button type="button" className="button button-secondary" onClick={load} disabled={loading}>Refresh</button></div>} />
 
     <section className="stat-grid stat-grid-two" aria-label="Saved opportunity summary">
       <StatCard label="Total saved" value={loading || error ? '—' : rows.length} detail="Opportunities in your shortlist" />
@@ -176,8 +197,16 @@ export default function SavedOpportunities() {
             </div>
           </article>;
         })}
-      </div> : rows.length ? <EmptyState icon={<SearchIcon />} title="No matching opportunities">No saved tenders match your search or filters. Adjust your criteria or clear filters to see your shortlist.</EmptyState> : <EmptyState icon={<BookmarkIcon />} title="No saved opportunities yet">When you bookmark a tender, it will appear here with its source and submission deadline.</EmptyState>}
+      </div> : rows.length ? <EmptyState icon={<SearchIcon />} title="No matching opportunities">No saved tenders match your search or filters. Adjust your criteria or clear filters to see your shortlist.</EmptyState> : <EmptyState icon={<BookmarkIcon />} title="No saved opportunities yet">Use “Save a tender” to add an item with its catalogue reference or ID.</EmptyState>}
     </section>
+    {saveOpen && <Modal title="Save a tender" description="Add a tender from the shared catalogue to your shortlist." onClose={() => { if (!saveBusy) setSaveOpen(false); }}>
+      <form className="form-stack" onSubmit={saveTender}>
+        {saveError && <ErrorState error={saveError} />}
+        <Field label="Tender reference or ID"><input name="tenderReference" required maxLength="200" autoFocus placeholder="Enter the catalogue reference" /></Field>
+        <p className="supporting-copy">The tender must already exist in the shared catalogue. If it isn’t found, ask the catalogue owner to load it first.</p>
+        <div className="dialog-actions"><button type="button" className="button button-secondary" disabled={saveBusy} onClick={() => setSaveOpen(false)}>Cancel</button><button type="submit" className="button button-primary" disabled={saveBusy}>{saveBusy ? 'Saving…' : 'Save tender'}</button></div>
+      </form>
+    </Modal>}
   </>;
 }
 

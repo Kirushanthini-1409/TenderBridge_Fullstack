@@ -3,7 +3,9 @@ import cors from 'cors';
 import { randomUUID } from 'node:crypto';
 import { authenticate, requireRole } from './auth.js';
 import { errorHandler, asyncRoute, HttpError } from './errors.js';
-import { applicationCreateSchema, decisionSchema, idSchema, applicationUpdateSchema, partnerSchema, procurementSchema, procurementUpdateSchema, verificationFilterSchema, verificationSchema } from './validation.js';
+import { applicationCreateSchema, decisionSchema, idSchema, applicationUpdateSchema, partnerSchema, procurementSchema, procurementUpdateSchema, verificationFilterSchema, verificationSchema, eligibilityEvaluateSchema, profileUpdateSchema, tenderExtractSchema, tenderListQuerySchema } from './validation.js';
+import { evaluateEligibility } from './services/eligibilityEngine.js';
+import { extractTenderDetails } from './services/tenderExtractor.js';
 import { getDb } from './db.js';
 
 const BUSINESS = 'BUSINESS';
@@ -135,6 +137,160 @@ export function createApp({ db = getDb(), auth = authenticate } = {}) {
     });
     if (!result.count) throw new HttpError(404, 'Pending verification request not found.');
     res.json({ item: await db.verificationRequest.findUnique({ where: { id } }) });
+  }));
+
+  api.post('/eligibility/evaluate', requireRole(BUSINESS), asyncRoute(async (req, res) => {
+    const data = parse(eligibilityEvaluateSchema, req.body);
+    const criteria = data.criteria || {
+      minTurnover: data.minTurnover,
+      minExperienceYears: data.minExperienceYears,
+      requiredCertifications: data.requiredCertifications,
+      locationRestrictions: data.locationRestrictions,
+    };
+
+    let businessProfile = null;
+    if (db?.businessProfile?.findUnique) {
+      businessProfile = await db.businessProfile.findUnique({ where: { ownerAuthId: req.auth.id } });
+    } else if (db?.businessProfile?.findFirst) {
+      businessProfile = await db.businessProfile.findFirst({ where: { ownerAuthId: req.auth.id } });
+    }
+
+    if (businessProfile && typeof businessProfile.annualTurnover === 'object' && businessProfile.annualTurnover !== null && typeof businessProfile.annualTurnover.toNumber === 'function') {
+      businessProfile = { ...businessProfile, annualTurnover: businessProfile.annualTurnover.toNumber() };
+    }
+
+    if (!businessProfile && data.businessProfile) {
+      const { id, ownerAuthId, userId, ...safeProfile } = data.businessProfile;
+      businessProfile = safeProfile;
+    }
+
+    const profileToEvaluate = businessProfile || {};
+
+    let result;
+    try {
+      result = evaluateEligibility(profileToEvaluate, criteria);
+    } catch (error) {
+      if (error instanceof TypeError || error instanceof RangeError) {
+        throw new HttpError(400, error.message);
+      }
+      throw error;
+    }
+
+    if (!businessProfile && !data.businessProfile) {
+      if (!result.missingInformation.includes('Business profile is not configured for this account.')) {
+        result.missingInformation.unshift('Business profile is not configured for this account.');
+      }
+    }
+
+    res.json({
+      ...result,
+      explanation: result.summary,
+      item: result,
+    });
+  }));
+
+  api.get('/profile', requireRole(BUSINESS), asyncRoute(async (req, res) => {
+    if (!db?.businessProfile) {
+      throw new HttpError(503, 'Profile storage is not available in the database.');
+    }
+    const item = await db.businessProfile.findUnique({
+      where: { ownerAuthId: req.auth.id },
+    });
+    if (!item) {
+      throw new HttpError(404, 'Profile not found.');
+    }
+    const turnover = item.annualTurnover && typeof item.annualTurnover === 'object' && typeof item.annualTurnover.toNumber === 'function'
+      ? item.annualTurnover.toNumber()
+      : item.annualTurnover;
+    res.json({ item: { ...item, annualTurnover: turnover } });
+  }));
+
+  api.put('/profile', requireRole(BUSINESS), asyncRoute(async (req, res) => {
+    if (!db?.businessProfile) {
+      throw new HttpError(503, 'Profile storage is not available in the database.');
+    }
+    const data = parse(profileUpdateSchema, req.body);
+    const item = await db.businessProfile.upsert({
+      where: { ownerAuthId: req.auth.id },
+      create: { ...data, ownerAuthId: req.auth.id },
+      update: data,
+    });
+    const turnover = item.annualTurnover && typeof item.annualTurnover === 'object' && typeof item.annualTurnover.toNumber === 'function'
+      ? item.annualTurnover.toNumber()
+      : item.annualTurnover;
+    res.json({ item: { ...item, annualTurnover: turnover } });
+  }));
+
+  api.get('/tenders', requireRole(BUSINESS, ORG, ADMIN), asyncRoute(async (req, res) => {
+    if (!db?.tender) {
+      throw new HttpError(503, 'Tender storage is not available in the database.');
+    }
+    const query = parse(tenderListQuerySchema, req.query);
+    const deadlineWhere = {
+      ...(query.deadlineFrom ? { gte: new Date(query.deadlineFrom) } : {}),
+      ...(query.deadlineTo   ? { lte: new Date(query.deadlineTo)   } : {}),
+    };
+    const where = {
+      ...(query.category ? { category: { equals: query.category, mode: 'insensitive' } } : {}),
+      ...(Object.keys(deadlineWhere).length ? { submissionDeadline: deadlineWhere } : {}),
+      ...(query.search ? {
+        OR: [
+          { title:            { contains: query.search, mode: 'insensitive' } },
+          { referenceNumber:  { contains: query.search, mode: 'insensitive' } },
+          { issuingAuthority: { contains: query.search, mode: 'insensitive' } },
+          { category:         { contains: query.search, mode: 'insensitive' } },
+        ],
+      } : {}),
+    };
+    const skip = (query.page - 1) * query.pageSize;
+    const [items, total] = await Promise.all([
+      db.tender.findMany({
+        where,
+        orderBy: [{ submissionDeadline: 'asc' }, { createdAt: 'desc' }],
+        skip,
+        take: query.pageSize,
+      }),
+      typeof db.tender.count === 'function'
+        ? db.tender.count({ where })
+        : Promise.resolve(undefined),
+    ]);
+    res.json({
+      items,
+      pagination: {
+        page: query.page,
+        pageSize: query.pageSize,
+        ...(typeof total === 'number'
+          ? { total, totalPages: Math.ceil(total / query.pageSize) }
+          : {}),
+      },
+    });
+  }));
+
+  api.get('/tenders/:id', requireRole(BUSINESS, ORG, ADMIN), asyncRoute(async (req, res) => {
+    if (!db?.tender) {
+      throw new HttpError(503, 'Tender storage is not available in the database.');
+    }
+    const idOrReference = String(req.params.id || '').trim();
+    const where = idSchema.safeParse(idOrReference).success
+      ? { id: idOrReference }
+      : { referenceNumber: idOrReference };
+    const item = await db.tender.findUnique({ where });
+    if (!item) throw new HttpError(404, 'Tender not found.');
+    res.json({ item });
+  }));
+
+  api.post('/tenders/extract', asyncRoute(async (req, res) => {
+    const data = parse(tenderExtractSchema, req.body);
+    let extracted;
+    try {
+      extracted = await extractTenderDetails(data.text);
+    } catch (error) {
+      if (error instanceof TypeError || error instanceof RangeError) {
+        throw new HttpError(400, error.message);
+      }
+      throw error;
+    }
+    res.json({ item: extracted, ...extracted });
   }));
 
   app.use('/api/v1', api);
