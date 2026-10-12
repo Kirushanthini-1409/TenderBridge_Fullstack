@@ -3,7 +3,7 @@ import cors from 'cors';
 import { randomUUID } from 'node:crypto';
 import { authenticate, requireRole } from './auth.js';
 import { errorHandler, asyncRoute, HttpError } from './errors.js';
-import { applicationCreateSchema, decisionSchema, idSchema, applicationUpdateSchema, partnerSchema, procurementSchema, procurementUpdateSchema, verificationFilterSchema, verificationSchema, eligibilityEvaluateSchema, profileUpdateSchema, tenderExtractSchema } from './validation.js';
+import { applicationCreateSchema, decisionSchema, idSchema, applicationUpdateSchema, partnerSchema, procurementSchema, procurementUpdateSchema, verificationFilterSchema, verificationSchema, eligibilityEvaluateSchema, profileUpdateSchema, tenderExtractSchema, tenderListQuerySchema } from './validation.js';
 import { evaluateEligibility } from './services/eligibilityEngine.js';
 import { extractTenderDetails } from './services/tenderExtractor.js';
 import { getDb } from './db.js';
@@ -219,6 +219,64 @@ export function createApp({ db = getDb(), auth = authenticate } = {}) {
       ? item.annualTurnover.toNumber()
       : item.annualTurnover;
     res.json({ item: { ...item, annualTurnover: turnover } });
+  }));
+
+  api.get('/tenders', requireRole(BUSINESS, ORG, ADMIN), asyncRoute(async (req, res) => {
+    if (!db?.tender) {
+      throw new HttpError(503, 'Tender storage is not available in the database.');
+    }
+    const query = parse(tenderListQuerySchema, req.query);
+    const deadlineWhere = {
+      ...(query.deadlineFrom ? { gte: new Date(query.deadlineFrom) } : {}),
+      ...(query.deadlineTo   ? { lte: new Date(query.deadlineTo)   } : {}),
+    };
+    const where = {
+      ...(query.category ? { category: { equals: query.category, mode: 'insensitive' } } : {}),
+      ...(Object.keys(deadlineWhere).length ? { submissionDeadline: deadlineWhere } : {}),
+      ...(query.search ? {
+        OR: [
+          { title:            { contains: query.search, mode: 'insensitive' } },
+          { referenceNumber:  { contains: query.search, mode: 'insensitive' } },
+          { issuingAuthority: { contains: query.search, mode: 'insensitive' } },
+          { category:         { contains: query.search, mode: 'insensitive' } },
+        ],
+      } : {}),
+    };
+    const skip = (query.page - 1) * query.pageSize;
+    const [items, total] = await Promise.all([
+      db.tender.findMany({
+        where,
+        orderBy: [{ submissionDeadline: 'asc' }, { createdAt: 'desc' }],
+        skip,
+        take: query.pageSize,
+      }),
+      typeof db.tender.count === 'function'
+        ? db.tender.count({ where })
+        : Promise.resolve(undefined),
+    ]);
+    res.json({
+      items,
+      pagination: {
+        page: query.page,
+        pageSize: query.pageSize,
+        ...(typeof total === 'number'
+          ? { total, totalPages: Math.ceil(total / query.pageSize) }
+          : {}),
+      },
+    });
+  }));
+
+  api.get('/tenders/:id', requireRole(BUSINESS, ORG, ADMIN), asyncRoute(async (req, res) => {
+    if (!db?.tender) {
+      throw new HttpError(503, 'Tender storage is not available in the database.');
+    }
+    const idOrReference = String(req.params.id || '').trim();
+    const where = idSchema.safeParse(idOrReference).success
+      ? { id: idOrReference }
+      : { referenceNumber: idOrReference };
+    const item = await db.tender.findUnique({ where });
+    if (!item) throw new HttpError(404, 'Tender not found.');
+    res.json({ item });
   }));
 
   api.post('/tenders/extract', asyncRoute(async (req, res) => {

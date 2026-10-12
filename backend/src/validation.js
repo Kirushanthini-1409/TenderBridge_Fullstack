@@ -91,5 +91,17 @@ export const tenderExtractSchema = z.object({
   tenderId: optionalText(100),
 });
 
+export const tenderListQuerySchema = z.object({
+  search: z.string().trim().min(1).max(180).optional(),
+  category: z.string().trim().min(1).max(100).optional(),
+  deadlineFrom: dateInput.optional(),
+  deadlineTo: dateInput.optional(),
+  page: z.coerce.number().int().min(1).max(10000).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(20),
+}).refine(value => {
+  if (!value.deadlineFrom || !value.deadlineTo) return true;
+  return new Date(value.deadlineFrom).getTime() <= new Date(value.deadlineTo).getTime();
+}, { path: ['deadlineTo'], message: 'deadlineTo must be on or after deadlineFrom.' });
+
 
 
